@@ -3,10 +3,14 @@ package dev.shoangenes.config;
 import java.util.Properties;
 import java.util.logging.Level;
 
+/**
+ * LoggerProperties is a singleton class that manages configuration settings for the logging system.
+ * It loads properties from a configuration file and provides access to these settings.
+ */
 public class LoggerProperties {
     /*============================= Singleton Instance ========================*/
 
-    private static LoggerProperties instance;
+    private static LoggerProperties instance = null;
 
     /*============================= Default Values ============================*/
 
@@ -49,18 +53,38 @@ public class LoggerProperties {
 
     /*============================= Getters =============================*/
 
+    /**
+     * Get the logging level.
+     *
+     * @return Logging level
+     */
     public Level getLevel() {
         return Level.parse(level);
     }
 
+    /**
+     * Get the logging format.
+     *
+     * @return Logging format
+     */
     public String getFormat() {
         return format;
     }
 
+    /**
+     * Get the logging destination.
+     *
+     * @return "console", "file", or "both"
+     */
     public String getDestination() {
         return destination;
     }
 
+    /**
+     * Get the file path for file logging.
+     *
+     * @return File path for logs
+     */
     public String getFilePath() {
         return filePath;
     }

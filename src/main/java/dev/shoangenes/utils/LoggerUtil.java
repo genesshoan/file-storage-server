@@ -6,6 +6,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.logging.*;
 
+/**
+ * Utility class for configuring and retrieving loggers.
+ * This class sets up logging based on properties defined in LoggerProperties.
+ */
 public class LoggerUtil {
     /*============================= Logger Configuration ========================*/
 

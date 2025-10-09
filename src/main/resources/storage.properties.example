@@ -1,0 +1,9 @@
+storage.repositoryType=database
+storage.fileStoragePath=data/files
+storage.databaseUrl=jdbc:sqlite:data/database.db
+storage.databaseDriver=org.sqlite.JDBC
+storage.username=
+storage.password=
+storage.maxFileSize=10485760
+storage.requireAuthentication=false
+storage.maxConnections=1

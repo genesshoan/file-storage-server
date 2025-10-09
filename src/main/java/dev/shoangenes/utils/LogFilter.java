@@ -7,6 +7,10 @@ import java.util.logging.Filter;
 import java.util.logging.LogRecord;
 import java.util.logging.Level;
 
+/**
+ * A filter for log records based on a minimum log level.
+ * The minimum log level is retrieved from LoggerProperties.
+ */
 public class LogFilter implements Filter {
     /*============================= Fields ==============================*/
 

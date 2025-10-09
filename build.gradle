@@ -10,8 +10,20 @@ repositories {
 }
 
 dependencies {
+    // JUnit 5 BOM for dependency management
     testImplementation platform('org.junit:junit-bom:5.10.0')
+
+    // JUnit 5 API and Engine
     testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    // SQLite JDBC Driver
+    implementation 'org.xerial:sqlite-jdbc:3.45.3.0'
+
+    // JetBrains Annotations
+    implementation 'org.jetbrains:annotations:24.1.0'
+
+    // HikariCP for connection pooling
+    implementation 'com.zaxxer:HikariCP:5.0.1'
 }
 
 test {
