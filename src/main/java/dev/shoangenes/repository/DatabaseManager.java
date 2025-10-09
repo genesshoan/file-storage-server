@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import dev.shoangenes.config.StorageProperties;
 import dev.shoangenes.utils.LoggerUtil;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.logging.Logger;
 
 /**
@@ -58,7 +59,7 @@ class DatabaseManager implements AutoCloseable {
      * @return A Connection object
      * @throws Exception if unable to get a connection
      */
-    public Connection getConnection() throws Exception {
+    public Connection getConnection() throws SQLException {
         return dataSource.getConnection();
     }
 
