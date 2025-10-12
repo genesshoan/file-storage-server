@@ -88,12 +88,11 @@ public class StorageProperties {
     }
 
     /**
-     * Get the file storage path if using file-based storage.
-     * @return Path to file storage or null if using a database
+     * Get the file storage path.
+     * @return Path to file storage.
      */
-    @Nullable
     public Path getFileStoragePath() {
-        return repositoryType.equals("database") ? null : Paths.get(fileStoragePath);
+        return Paths.get(fileStoragePath);
     }
 
     /**

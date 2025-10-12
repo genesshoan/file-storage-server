@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 class DatabaseManager implements AutoCloseable {
     /*============================= Singleton Instance ========================*/
 
-    private static DatabaseManager instance = null;
+    private static final DatabaseManager instance = new DatabaseManager();
 
     /*================================= Fields ================================*/
 
@@ -48,9 +48,6 @@ class DatabaseManager implements AutoCloseable {
     /*============================= Public Methods =============================*/
 
     public static DatabaseManager getInstance() {
-        if (instance == null) {
-            instance = new DatabaseManager();
-        }
         return instance;
     }
 
