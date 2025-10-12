@@ -7,6 +7,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * FSMessage represents a message in a custom file storage protocol.
+ * It can be either a request or a response, containing headers and an optional body.
+ */
 public class FSMessage {
     /*============================ Constants ============================*/
 
