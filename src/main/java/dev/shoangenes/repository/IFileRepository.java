@@ -8,22 +8,15 @@ import dev.shoangenes.model.FileMetadata;
  *
  * Implementations can be file-based or database-backed.
  */
-public interface IFileRepository {
+public interface IFileRepository extends AutoCloseable {
 
     /**
-     * Generates the next available unique ID for a file.
-     * @return the next unique ID.
+     * Saves a new file mapping and returns the generated ID.
+     * @param fileName the name of the file to save.
+     * @return the generated file ID.
      * @throws DatabaseException if a database access error occurs.
      */
-    int generateNextId() throws DatabaseException;
-
-    /**
-     * Saves a mapping between an ID and a file name.
-     * @param id the file ID.
-     * @param fileName the file name.
-     * @throws DatabaseException if a database access error occurs.
-     */
-    void saveMapping(int id, String fileName) throws DatabaseException;
+    int saveMapping(String fileName) throws DatabaseException;
 
     /**
      * Removes the mapping for a given ID.

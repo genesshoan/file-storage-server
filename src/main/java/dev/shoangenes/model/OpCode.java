@@ -45,6 +45,6 @@ public enum OpCode {
                 return op;
             }
         }
-        throw new IllegalArgumentException("No matching OpCode for code: " + code);
+        throw new IllegalArgumentException("No matching operation code for code: " + code);
     }
 }

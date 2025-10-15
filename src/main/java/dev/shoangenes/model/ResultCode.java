@@ -45,12 +45,12 @@ public enum ResultCode {
      * @return The matching ResultCode enum.
      * @throws IllegalArgumentException If no matching ResultCode is found.
      */
-    public ResultCode fromCode(int code) {
+    public static ResultCode fromCode(int code) {
         for (ResultCode rc : ResultCode.values()) {
             if (rc.getCode() == code) {
                 return rc;
             }
         }
-        throw new IllegalArgumentException("No matching ResultCode for code: " + code);
+        throw new IllegalArgumentException("No matching result code for code: " + code);
     }
 }

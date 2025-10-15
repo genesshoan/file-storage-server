@@ -1,7 +1,11 @@
 package dev.shoangenes.model;
 
+import dev.shoangenes.config.StorageProperties;
+import dev.shoangenes.utils.FileValidator;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -283,5 +287,77 @@ public class FSMessage {
         }
 
         return message;
+    }
+
+    /*=========================== Validation ============================*/
+    /**
+     * Validates the FSMessage based on its type (request or response).
+     * Throws IllegalArgumentException if the message is invalid.
+     */
+    public void validateMessage() {
+        switch (opCodeOrResult) {
+            case 0 -> {
+                validateRequest();
+            }
+            case 1 -> {
+                validateResponse();
+            }
+            default -> throw new IllegalArgumentException("Unknown message type");
+        }
+    }
+
+    /**
+     * Validates a request FSMessage.
+     * Ensures required headers are present and valid based on the operation code.
+     * Throws IllegalArgumentException if validation fails.
+     */
+    private void validateRequest() {
+        OpCode opCode = OpCode.fromCode(opCodeOrResult);
+
+        String fileName = headers.get(FSHeader.FILE_NAME.key());
+        String idStr = headers.get(FSHeader.ID.key());
+
+        if (fileName == null && idStr == null) {
+            throw new IllegalArgumentException("Either File-Name or ID header must be present");
+        }
+
+        if (fileName != null) {
+            FileValidator.validateFileName(headers.get(FSHeader.FILE_NAME.key()));
+        }
+
+        if (idStr != null) {
+            FileValidator.validateFileId(idStr);
+        }
+
+        if (opCode == OpCode.PUT) {
+            FileValidator.validateFileSize(bodyLength);
+            FileValidator.validateFileData(body, bodyLength);
+        }
+    }
+
+    /**
+     * Validates a response FSMessage.
+     * Ensures required headers are present and valid based on the result code.
+     * Throws IllegalArgumentException if validation fails.
+     */
+    private void validateResponse() {
+        ResultCode resultCode = resultCode = ResultCode.fromCode(opCodeOrResult);
+
+        switch (resultCode) {
+            case SUCCESS -> {
+                String idStr = headers.get(FSHeader.ID.key());
+                String fileName = headers.get(FSHeader.FILE_NAME.key());
+
+                FileValidator.validateFileName(fileName);
+                FileValidator.validateFileId(idStr);
+                FileValidator.validateFileData(body, bodyLength);
+            }
+            case NOT_FOUND, BAD_REQUEST, FORBIDDEN, SERVER_ERROR -> {
+                String message = headers.get("Message");
+                if (message == null || message.isEmpty()) {
+                    throw new IllegalArgumentException("Missing error message in response");
+                }
+            }
+        }
     }
 }

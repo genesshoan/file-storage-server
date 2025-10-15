@@ -1,0 +1,200 @@
+package dev.shoangenes.server;
+
+import dev.shoangenes.exception.DatabaseException;
+import dev.shoangenes.file.FileManager;
+import dev.shoangenes.model.FSHeader;
+import dev.shoangenes.model.FSMessage;
+import dev.shoangenes.model.OpCode;
+import dev.shoangenes.model.ResultCode;
+import dev.shoangenes.repository.DBFileRepository;
+import dev.shoangenes.repository.IFileRepository;
+import dev.shoangenes.utils.LoggerUtil;
+
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Optional;
+import java.util.logging.Logger;
+
+/**
+ * Implementación vacía de IFileService.
+ */
+public class FileService implements IFileService {
+    /*======================== Constructors =======================*/
+
+    public FileService() {
+    }
+
+    /*========================== Logger ===========================*/
+
+    private final Logger logger = LoggerUtil.getLogger(FileService.class);
+
+    /*======================= Public Methods =======================*/
+
+    /**
+     * Processes a file system message and returns a response.
+     * @param message the incoming FSMessage
+     * @return the response FSMessage
+     */
+    @Override
+    public FSMessage processRequest(FSMessage message) {
+        try {
+            message.validateMessage();
+        } catch (IllegalArgumentException e) {
+            logger.info("Invalid request received: " + e.getMessage());
+            return FSMessage.createErrorResponse(ResultCode.BAD_REQUEST, "Invalid request: " + e.getMessage());
+        }
+
+        OpCode opCode = OpCode.fromCode(message.getOpCodeOrResult());
+
+        Map<String, String> headers = message.getHeaders();
+
+        String name = headers.get(FSHeader.FILE_NAME.key());
+        String idStr = headers.get(FSHeader.ID.key());
+        Integer id = null;
+
+        try (IFileRepository fileRepo = new DBFileRepository()) {
+            if (name == null) {
+                id = Integer.parseInt(idStr);
+                name = fileRepo.getFileName(id);
+                if (name == null) {
+                    return FSMessage.createErrorResponse(ResultCode.NOT_FOUND, "File not found for ID: " + id);
+                }
+            } else {
+                id = fileRepo.getId(name);
+                if (id == -1) {
+                    return FSMessage.createErrorResponse(ResultCode.NOT_FOUND, "File not found: " + name);
+                }
+            }
+        } catch (Exception e) {
+            logger.severe("Database error during request processing: " + e.getMessage());
+            return FSMessage.createErrorResponse(ResultCode.SERVER_ERROR, "Database error: " + e.getMessage());
+        }
+
+        switch (opCode) {
+            case PUT -> {
+                return handlePut( name, message.getBody());
+            }
+            case GET -> {
+                return handleGet(id, name);
+            }
+            case DELETE -> {
+                return handleDelete(id, name);
+            }
+            default -> {
+                return FSMessage.createErrorResponse(ResultCode.BAD_REQUEST, "Unsupported operation");
+            }
+        }
+    }
+
+    /**
+     * Sends a response message through the given DataOutputStream.
+     * @param out the DataOutputStream to send the response
+     * @param message the FSMessage to send
+     */
+    @Override
+    public void sendResponse(DataOutputStream out, FSMessage message) {
+        try {
+            message.writeTo(out);
+        } catch (IOException e) {
+            logger.severe("Failed to send response (the current client is probably disconnected): " + e.getMessage());
+        }
+    }
+
+    /*====================== Private Methods ======================*/
+
+    /**
+     * Handles the DELETE operation to remove a file by name.
+     *
+     * @param fileName The name of the file to delete.
+     * @return An FSMessage indicating success or failure of the operation.
+     */
+    private FSMessage handleDelete(int id, String fileName) {
+        Optional<byte[]> content = Optional.empty();
+        try (IFileRepository fileRepo = new DBFileRepository()) {
+            if (!fileRepo.fileExists(id)) {
+                return FSMessage.createErrorResponse(ResultCode.NOT_FOUND, "File not found: " + fileName);
+            }
+
+            content =  new FileManager().deleteFile(fileName);
+            fileRepo.removeMapping(id);
+
+            return FSMessage.createOkResponse(id, fileName);
+        } catch (DatabaseException e) {
+            content.ifPresent(bytes -> {
+                try { new FileManager().saveFile(fileName, bytes); }
+                catch (IOException ignored) {
+                    logger.severe("Failed to restore file after database error: " + fileName + " - " + ignored.getMessage());
+                }
+            });
+            return FSMessage.createErrorResponse(ResultCode.SERVER_ERROR, "Database error: " + e.getMessage());
+        } catch (IOException e) {
+            logger.severe("Failed to delete file: " + fileName + " - " + e.getMessage());
+            return FSMessage.createErrorResponse(ResultCode.SERVER_ERROR, "File system error: " + e.getMessage());
+        } catch (Exception e) {
+            logger.severe("Unexpected error during file deletion: " + fileName + " - " + e.getMessage());
+            return FSMessage.createErrorResponse(ResultCode.SERVER_ERROR, "Unexpected error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handles the PUT operation to store a file.
+     *
+     * @param name    The name of the file to store.
+     * @param content The content of the file as a byte array.
+     * @return An FSMessage indicating success or failure of the operation.
+     */
+    private FSMessage handlePut(String name, byte[] content) {
+        try (IFileRepository fileRepo = new DBFileRepository()) {
+            if (fileRepo.fileExists(name)) {
+                return FSMessage.createErrorResponse(ResultCode.BAD_REQUEST, "File already exists: " + name);
+            }
+
+            new FileManager().saveFile(name, content);
+            int id = fileRepo.saveMapping(name);
+
+            return FSMessage.createOkResponse(id, name);
+        } catch (DatabaseException e) {
+            // Attempt to clean up the file if database operation fails
+            try { new FileManager().deleteFile(name); }
+            catch (IOException ignored) {
+                logger.severe("Failed to clean up file after database error: " + name + " - " + ignored.getMessage());
+            }
+            return FSMessage.createErrorResponse(ResultCode.SERVER_ERROR, "Database error: " + e.getMessage());
+        } catch (IOException e) {
+            logger.severe("Failed to save file: " + name + " - " + e.getMessage());
+            return FSMessage.createErrorResponse(ResultCode.SERVER_ERROR, "File system error: " + e.getMessage());
+        } catch (Exception e) {
+            logger.severe("Unexpected error during file storage: " + name + " - " + e.getMessage());
+            return FSMessage.createErrorResponse(ResultCode.SERVER_ERROR, "Unexpected error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Handles the GET operation to retrieve a file by ID.
+     *
+     * @param id The ID of the file to retrieve.
+     * @return An FSMessage containing the file content or an error message.
+     */
+    private FSMessage handleGet(int id, String fileName) {
+        try (IFileRepository fileRepo = new DBFileRepository()) {
+            if (!fileRepo.fileExists(id)) {
+                return FSMessage.createErrorResponse(ResultCode.NOT_FOUND, "File not found: " + id);
+            }
+
+            Optional<byte[]> content = new FileManager().getFile(fileName);
+            return content.map(
+                    bytes -> FSMessage.createOkGetResponse(id, fileName, bytes))
+                    .orElseGet(() -> FSMessage.createErrorResponse(ResultCode.NOT_FOUND, "File content not found: " + fileName));
+        } catch (DatabaseException e) {
+            logger.severe("Failed to retrieve file: " + fileName + " - " + e.getMessage());
+            return FSMessage.createErrorResponse(ResultCode.SERVER_ERROR, "Database error: " + e.getMessage());
+        } catch (IOException e) {
+            logger.severe("Failed to get file: " + fileName + " - " + e.getMessage());
+            return FSMessage.createErrorResponse(ResultCode.SERVER_ERROR, "File system error: " + e.getMessage());
+        } catch (Exception e) {
+            logger.severe("Unexpected error during file retrieval: " + fileName + " - " + e.getMessage());
+            return FSMessage.createErrorResponse(ResultCode.SERVER_ERROR, "Unexpected error: " + e.getMessage());
+        }
+    }
+}

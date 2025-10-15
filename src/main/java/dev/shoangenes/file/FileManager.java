@@ -43,6 +43,10 @@ public class FileManager {
         Path filePath = getFilePath(filename);
         fileAccessManager.acquireWriteLock(filename);
         try {
+            if (!Files.exists(filePath.getParent())) {
+                Files.createDirectories(filePath.getParent());
+            }
+
             Files.write(filePath, data);
         } finally {
             fileAccessManager.releaseWriteLock(filename);

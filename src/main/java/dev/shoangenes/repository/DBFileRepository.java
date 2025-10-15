@@ -9,7 +9,7 @@ import java.sql.*;
  * Database-backed implementation of the IFileRepository interface.
  * This class manages file ID and name mappings using SQL database.
  */
-public class DBFileRepository implements IFileRepository, AutoCloseable {
+public class DBFileRepository implements IFileRepository {
     /*============================== Fields ============================*/
 
     private final Connection connection;
@@ -28,46 +28,32 @@ public class DBFileRepository implements IFileRepository, AutoCloseable {
     /*=========================== Public Methods ========================*/
 
     /**
-     * Generates the next available unique ID for a file.
-     * @return the next unique ID or 1 if the table is empty.
+     * Saves a new file mapping and returns the generated ID.
+     * @param fileName the name of the file to save.
+     * @return the generated file ID.
      * @throws DatabaseException if a database access error occurs.
      */
-    public int generateNextId() throws DatabaseException {
-        String query = "SELECT MAX(id) + 1 AS max_id FROM files";
-        try (Statement statement = connection.createStatement()) {
-            try (ResultSet rs = statement.executeQuery(query)) {
-                if (rs.next()) {
-                    int nextId = rs.getInt("max_id");
-                    return nextId > 0 ? nextId : 1; // Ensure ID starts from 1
-                } else {
-                    return 1; // Start IDs from 1 if table is empty
-                }
-            }
-        } catch (SQLException e) {
-            throw new DatabaseException("Error generating next ID", e);
-        }
-    }
-
-    /**
-     * Saves a mapping between an ID and a file name.
-     * @param id the file ID.
-     * @param fileName the file name.
-     * @throws DatabaseException if a database access error occurs.
-     * @throws IllegalArgumentException if fileName is null.
-     */
-    public void saveMapping(int id, String fileName) throws DatabaseException {
+    public int saveMapping(String fileName) throws DatabaseException {
         if (fileName == null) {
             throw new IllegalArgumentException("File name cannot be null");
         }
 
-        String query = "INSERT INTO files (id, file_name) VALUES (?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
-            pstmt.setInt(1, id);
-            pstmt.setString(2, fileName);
+        int generatedId = -1;
+
+        String query = "INSERT INTO files (file_name) VALUES (?)";
+        try (PreparedStatement pstmt = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setString(1, fileName);
             pstmt.executeUpdate();
+
+            try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                if (rs.next()) {
+                    generatedId = rs.getInt(1);
+                }
+            }
         } catch (SQLException e) {
             throw new DatabaseException("Error saving mapping", e);
         }
+        return generatedId;
     }
 
     /**
@@ -214,7 +200,7 @@ public class DBFileRepository implements IFileRepository, AutoCloseable {
      */
     private void createTableIfNotExists() throws DatabaseException {
         String createTableSQL = "CREATE TABLE IF NOT EXISTS files (" +
-                "id INT PRIMARY KEY," +
+                "id INT AUTO_INCREMENT PRIMARY KEY," +
                 "file_name VARCHAR(255) UNIQUE NOT NULL" +
                 ")";
         try (Statement statement = connection.createStatement()) {
