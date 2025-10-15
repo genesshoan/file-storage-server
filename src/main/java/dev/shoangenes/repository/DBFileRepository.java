@@ -2,8 +2,10 @@ package dev.shoangenes.repository;
 
 import dev.shoangenes.exception.DatabaseException;
 import dev.shoangenes.model.FileMetadata;
+import dev.shoangenes.utils.LoggerUtil;
 import org.jetbrains.annotations.Nullable;
 import java.sql.*;
+import java.util.logging.Logger;
 
 /**
  * Database-backed implementation of the IFileRepository interface.
@@ -14,13 +16,19 @@ public class DBFileRepository implements IFileRepository {
 
     private final Connection connection;
 
+    /*=========================== Logger ===========================*/
+
+    private final Logger logger = LoggerUtil.getLogger(DBFileRepository.class);
+
     /*=========================== Constructors =========================*/
 
     public DBFileRepository() throws DatabaseException {
         try {
             connection = DatabaseManager.getInstance().getConnection();
             createTableIfNotExists();
+            logger.info("Database connection initialized and table checked/created.");
         } catch (SQLException e) {
+            logger.severe("Error initializing database connection: " + e.getMessage());
             throw new DatabaseException("Error initializing database connection", e);
         }
     }
@@ -35,6 +43,7 @@ public class DBFileRepository implements IFileRepository {
      */
     public int saveMapping(String fileName) throws DatabaseException {
         if (fileName == null) {
+            logger.warning("Attempted to save a mapping with a null file name.");
             throw new IllegalArgumentException("File name cannot be null");
         }
 
@@ -48,9 +57,11 @@ public class DBFileRepository implements IFileRepository {
             try (ResultSet rs = pstmt.getGeneratedKeys()) {
                 if (rs.next()) {
                     generatedId = rs.getInt(1);
+                    logger.info("File mapping saved. File name: " + fileName + ", Generated ID: " + generatedId);
                 }
             }
         } catch (SQLException e) {
+            logger.severe("Error saving mapping for file name '" + fileName + "': " + e.getMessage());
             throw new DatabaseException("Error saving mapping", e);
         }
         return generatedId;
@@ -79,11 +90,15 @@ public class DBFileRepository implements IFileRepository {
                     try (PreparedStatement deletePstmt = connection.prepareStatement(deleteQuery)) {
                         deletePstmt.setInt(1, id);
                         deletePstmt.executeUpdate();
+                        logger.info("File mapping removed. ID: " + id + ", File name: " + fileMetadata.getName());
                     }
+                } else {
+                    logger.warning("No file mapping found to remove for ID: " + id);
                 }
                 return fileMetadata; // Return null if not found
             }
         } catch (SQLException e) {
+            logger.severe("Error removing mapping for ID '" + id + "': " + e.getMessage());
             throw new DatabaseException("Error removing mapping", e);
         }
     }
@@ -101,12 +116,16 @@ public class DBFileRepository implements IFileRepository {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getString("file_name");
+                    String fileName = rs.getString("file_name");
+                    logger.info("File name found for ID " + id + ": " + fileName);
+                    return fileName;
                 } else {
+                    logger.warning("No file name found for ID: " + id);
                     return null; // Not found
                 }
             }
         } catch (SQLException e) {
+            logger.severe("Error getting file name for ID '" + id + "': " + e.getMessage());
             throw new DatabaseException("Error getting file name", e);
         }
     }
@@ -119,6 +138,7 @@ public class DBFileRepository implements IFileRepository {
      */
     public int getId(String fileName) throws DatabaseException {
         if (fileName == null) {
+            logger.warning("Attempted to get ID for a null file name.");
             return -1;
         }
 
@@ -127,12 +147,16 @@ public class DBFileRepository implements IFileRepository {
             pstmt.setString(1, fileName);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    return rs.getInt("id");
+                    int id = rs.getInt("id");
+                    logger.info("ID found for file name '" + fileName + "': " + id);
+                    return id;
                 } else {
+                    logger.warning("No ID found for file name: " + fileName);
                     return -1; // Not found
                 }
             }
         } catch (SQLException e) {
+            logger.severe("Error getting file ID for file name '" + fileName + "': " + e.getMessage());
             throw new DatabaseException("Error getting file ID", e);
         }
     }
@@ -148,9 +172,12 @@ public class DBFileRepository implements IFileRepository {
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
-                return rs.next();
+                boolean exists = rs.next();
+                logger.info("File existence check by ID " + id + ": " + exists);
+                return exists;
             }
         } catch (SQLException e) {
+            logger.severe("Error checking if file exists by ID '" + id + "': " + e.getMessage());
             throw new DatabaseException("Error checking if file exists by ID", e);
         }
     }
@@ -163,6 +190,7 @@ public class DBFileRepository implements IFileRepository {
      */
     public boolean fileExists(String fileName) throws DatabaseException {
         if (fileName == null) {
+            logger.warning("Attempted to check existence for a null file name.");
             return false;
         }
 
@@ -170,9 +198,12 @@ public class DBFileRepository implements IFileRepository {
         try (PreparedStatement pstmt = connection.prepareStatement(query)) {
             pstmt.setString(1, fileName);
             try (ResultSet rs = pstmt.executeQuery()) {
-                return rs.next();
+                boolean exists = rs.next();
+                logger.info("File existence check by name '" + fileName + "': " + exists);
+                return exists;
             }
         } catch (SQLException e) {
+            logger.severe("Error checking if file exists by name '" + fileName + "': " + e.getMessage());
             throw new DatabaseException("Error checking if file exists by name", e);
         }
     }
@@ -186,8 +217,10 @@ public class DBFileRepository implements IFileRepository {
         try {
             if (connection != null && !connection.isClosed()) {
                 connection.close();
+                logger.info("Database connection closed successfully.");
             }
         } catch (SQLException e) {
+            logger.severe("Error closing database connection: " + e.getMessage());
             throw new DatabaseException("Error closing database connection", e);
         }
     }
@@ -205,7 +238,9 @@ public class DBFileRepository implements IFileRepository {
                 ")";
         try (Statement statement = connection.createStatement()) {
             statement.execute(createTableSQL);
+            logger.info("Checked/created table 'files' in the database.");
         } catch (SQLException e) {
+            logger.severe("Error creating table: " + e.getMessage());
             throw new DatabaseException("Error creating table", e);
         }
     }

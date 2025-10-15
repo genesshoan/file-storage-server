@@ -42,7 +42,13 @@ class DatabaseManager implements AutoCloseable {
             hikariConfig.setPassword(props.getDatabasePassword());
         }
 
-        dataSource = new HikariDataSource(hikariConfig);
+        try {
+            dataSource = new HikariDataSource(hikariConfig);
+            logger.info("Hikari DataSource initialized successfully.");
+        } catch (Exception e) {
+            logger.severe("Failed to initialize Hikari DataSource: " + e.getMessage());
+            throw e;
+        }
     }
 
     /*============================= Public Methods =============================*/
@@ -57,7 +63,14 @@ class DatabaseManager implements AutoCloseable {
      * @throws Exception if unable to get a connection
      */
     public Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
+        try {
+            Connection conn = dataSource.getConnection();
+            logger.fine("Database connection acquired from pool.");
+            return conn;
+        } catch (SQLException e) {
+            logger.severe("Failed to acquire database connection: " + e.getMessage());
+            throw e;
+        }
     }
 
     /**
@@ -68,6 +81,8 @@ class DatabaseManager implements AutoCloseable {
         if (dataSource != null && !dataSource.isClosed()) {
             dataSource.close();
             logger.info("Closing Hikari DataSource");
+        } else {
+            logger.warning("Attempted to close Hikari DataSource, but it was already closed or null.");
         }
     }
 }

@@ -32,6 +32,7 @@ public class StorageProperties {
     private String password;
     private String username;
     private int maxConnections;
+    private int maxFileNameLength;
 
     /*============================= Constructors ==============================*/
 
@@ -65,6 +66,11 @@ public class StorageProperties {
             Integer.parseInt(props.getProperty("storage.maxConnections", "1"));
         } catch (NumberFormatException e) {
             this.maxConnections = 1;
+        }
+        try {
+            this.maxFileNameLength = Integer.parseInt(props.getProperty("storage.maxFileNameLength", "255"));
+        } catch (NumberFormatException e) {
+            this.maxFileNameLength = 255;
         }
     }
 
@@ -153,5 +159,13 @@ public class StorageProperties {
      */
     public int getMaxConnections() {
         return maxConnections;
+    }
+
+    /**
+     * Get the maximum allowed length for file names.
+     * @return Maximum file name length
+     */
+    public int getMaxFileNameLength() {
+        return 255; // Typical maximum filename length for many filesystems
     }
 }

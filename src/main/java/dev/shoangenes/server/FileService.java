@@ -46,6 +46,7 @@ public class FileService implements IFileService {
         }
 
         OpCode opCode = OpCode.fromCode(message.getOpCodeOrResult());
+        logger.info("Processing request with OpCode: " + opCode);
 
         Map<String, String> headers = message.getHeaders();
 
@@ -58,11 +59,13 @@ public class FileService implements IFileService {
                 id = Integer.parseInt(idStr);
                 name = fileRepo.getFileName(id);
                 if (name == null) {
+                    logger.warning("File not found for ID: " + id);
                     return FSMessage.createErrorResponse(ResultCode.NOT_FOUND, "File not found for ID: " + id);
                 }
             } else {
                 id = fileRepo.getId(name);
                 if (id == -1) {
+                    logger.warning("File not found: " + name);
                     return FSMessage.createErrorResponse(ResultCode.NOT_FOUND, "File not found: " + name);
                 }
             }
@@ -73,15 +76,19 @@ public class FileService implements IFileService {
 
         switch (opCode) {
             case PUT -> {
-                return handlePut( name, message.getBody());
+                logger.info("Handling PUT operation for file: " + name);
+                return handlePut(name, message.getBody());
             }
             case GET -> {
+                logger.info("Handling GET operation for file: " + name + ", ID: " + id);
                 return handleGet(id, name);
             }
             case DELETE -> {
+                logger.info("Handling DELETE operation for file: " + name + ", ID: " + id);
                 return handleDelete(id, name);
             }
             default -> {
+                logger.warning("Unsupported operation: " + opCode);
                 return FSMessage.createErrorResponse(ResultCode.BAD_REQUEST, "Unsupported operation");
             }
         }
@@ -96,6 +103,7 @@ public class FileService implements IFileService {
     public void sendResponse(DataOutputStream out, FSMessage message) {
         try {
             message.writeTo(out);
+            logger.info("Response sent to client. ResultCode: " + message.getOpCodeOrResult());
         } catch (IOException e) {
             logger.severe("Failed to send response (the current client is probably disconnected): " + e.getMessage());
         }
@@ -113,12 +121,14 @@ public class FileService implements IFileService {
         Optional<byte[]> content = Optional.empty();
         try (IFileRepository fileRepo = new DBFileRepository()) {
             if (!fileRepo.fileExists(id)) {
+                logger.warning("File not found for deletion: " + fileName + " (ID: " + id + ")");
                 return FSMessage.createErrorResponse(ResultCode.NOT_FOUND, "File not found: " + fileName);
             }
 
             content =  new FileManager().deleteFile(fileName);
             fileRepo.removeMapping(id);
 
+            logger.info("File deleted successfully: " + fileName + " (ID: " + id + ")");
             return FSMessage.createOkResponse(id, fileName);
         } catch (DatabaseException e) {
             content.ifPresent(bytes -> {
@@ -127,6 +137,7 @@ public class FileService implements IFileService {
                     logger.severe("Failed to restore file after database error: " + fileName + " - " + ignored.getMessage());
                 }
             });
+            logger.severe("Database error during file deletion: " + fileName + " - " + e.getMessage());
             return FSMessage.createErrorResponse(ResultCode.SERVER_ERROR, "Database error: " + e.getMessage());
         } catch (IOException e) {
             logger.severe("Failed to delete file: " + fileName + " - " + e.getMessage());
@@ -147,12 +158,14 @@ public class FileService implements IFileService {
     private FSMessage handlePut(String name, byte[] content) {
         try (IFileRepository fileRepo = new DBFileRepository()) {
             if (fileRepo.fileExists(name)) {
+                logger.warning("Attempt to overwrite existing file: " + name);
                 return FSMessage.createErrorResponse(ResultCode.BAD_REQUEST, "File already exists: " + name);
             }
 
             new FileManager().saveFile(name, content);
             int id = fileRepo.saveMapping(name);
 
+            logger.info("File stored successfully: " + name + " (ID: " + id + ")");
             return FSMessage.createOkResponse(id, name);
         } catch (DatabaseException e) {
             // Attempt to clean up the file if database operation fails
@@ -160,6 +173,7 @@ public class FileService implements IFileService {
             catch (IOException ignored) {
                 logger.severe("Failed to clean up file after database error: " + name + " - " + ignored.getMessage());
             }
+            logger.severe("Database error during file storage: " + name + " - " + e.getMessage());
             return FSMessage.createErrorResponse(ResultCode.SERVER_ERROR, "Database error: " + e.getMessage());
         } catch (IOException e) {
             logger.severe("Failed to save file: " + name + " - " + e.getMessage());
@@ -179,13 +193,18 @@ public class FileService implements IFileService {
     private FSMessage handleGet(int id, String fileName) {
         try (IFileRepository fileRepo = new DBFileRepository()) {
             if (!fileRepo.fileExists(id)) {
+                logger.warning("File not found for retrieval: " + fileName + " (ID: " + id + ")");
                 return FSMessage.createErrorResponse(ResultCode.NOT_FOUND, "File not found: " + id);
             }
 
             Optional<byte[]> content = new FileManager().getFile(fileName);
-            return content.map(
-                    bytes -> FSMessage.createOkGetResponse(id, fileName, bytes))
-                    .orElseGet(() -> FSMessage.createErrorResponse(ResultCode.NOT_FOUND, "File content not found: " + fileName));
+            if (content.isPresent()) {
+                logger.info("File retrieved successfully: " + fileName + " (ID: " + id + ")");
+                return FSMessage.createOkGetResponse(id, fileName, content.get());
+            } else {
+                logger.warning("File content not found: " + fileName + " (ID: " + id + ")");
+                return FSMessage.createErrorResponse(ResultCode.NOT_FOUND, "File content not found: " + fileName);
+            }
         } catch (DatabaseException e) {
             logger.severe("Failed to retrieve file: " + fileName + " - " + e.getMessage());
             return FSMessage.createErrorResponse(ResultCode.SERVER_ERROR, "Database error: " + e.getMessage());
