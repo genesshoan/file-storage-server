@@ -16,6 +16,9 @@ dependencies {
     // JUnit 5 API and Engine
     testImplementation 'org.junit.jupiter:junit-jupiter'
 
+    // AssertJ for fluent assertions
+    testImplementation 'org.assertj:assertj-core:3.26.0'
+
     // SQLite JDBC Driver
     implementation 'org.xerial:sqlite-jdbc:3.45.3.0'
 
