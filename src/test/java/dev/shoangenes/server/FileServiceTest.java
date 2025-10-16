@@ -24,9 +24,6 @@ import java.util.Optional;
 @ExtendWith(MockitoExtension.class)
 public class FileServiceTest {
     @Mock
-    FSMessage fsMessage;
-
-    @Mock
     IFileRepository fileRepository;
 
     @Mock
@@ -53,12 +50,11 @@ public class FileServiceTest {
      */
     @Nested
     class putFileTest {
+        FSMessage fsMessage;
         @BeforeEach
         void setup() {
-            fsMessage = spy(FSMessage.createPutRequest(fileName, fileContent));
-            doNothing().when(fsMessage).validateMessage();
+            fsMessage = FSMessage.createPutRequest(fileName, fileContent);
         }
-
         /**
          * Test that a new file is saved successfully when it does not already exist.
          * Verifies that the repository and file manager are called as expected, and the response is SUCCESS.
@@ -158,10 +154,11 @@ public class FileServiceTest {
      */
     @Nested
     class getFileTest {
+        FSMessage fsMessage;
+
         @BeforeEach
         void setup() {
-            fsMessage = spy(FSMessage.createGetRequest(fileName));
-            doNothing().when(fsMessage).validateMessage();
+            fsMessage = FSMessage.createGetRequest(fileName);
         }
 
         /**
@@ -249,10 +246,11 @@ public class FileServiceTest {
 
     @Nested
     class deleteFileTest {
+        FSMessage fsMessage;
+
         @BeforeEach
         void setup() {
-            fsMessage = spy(FSMessage.createDeleteRequest(fileName));
-            doNothing().when(fsMessage).validateMessage();
+            fsMessage = FSMessage.createDeleteRequest(fileName);
         }
 
         /**

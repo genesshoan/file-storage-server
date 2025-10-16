@@ -290,7 +290,7 @@ public class FSMessage {
      * Throws IllegalArgumentException if the message is invalid.
      */
     public void validateMessage() {
-        switch (opCodeOrResult) {
+        switch (type) {
             case 0 -> {
                 validateRequest();
             }
