@@ -127,14 +127,17 @@ public class FileService implements IFileService, AutoCloseable {
      * Sends a response message through the given DataOutputStream.
      * @param out the DataOutputStream to send the response
      * @param message the FSMessage to send
+     * @return true if the response was sent successfully, false otherwise
      */
     @Override
-    public void sendResponse(DataOutputStream out, FSMessage message) {
+    public boolean sendResponse(DataOutputStream out, FSMessage message) {
         try {
             message.writeTo(out);
             logger.info("Response sent to client. ResultCode: " + message.getOpCodeOrResult());
+            return true;
         } catch (IOException e) {
             logger.severe("Failed to send response (the current client is probably disconnected): " + e.getMessage());
+            return false;
         }
     }
 

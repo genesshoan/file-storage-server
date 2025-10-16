@@ -18,6 +18,7 @@ public interface IFileService {
      * Sends a response message through the given DataOutputStream.
      * @param out the DataOutputStream to send the response
      * @param message the FSMessage to send
+     * @return true if the response was sent successfully, false otherwise
      */
-    void sendResponse(DataOutputStream out, FSMessage message);
+    boolean sendResponse(DataOutputStream out, FSMessage message);
 }
