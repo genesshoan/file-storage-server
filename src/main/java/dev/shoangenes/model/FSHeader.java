@@ -4,23 +4,35 @@ package dev.shoangenes.model;
  * Enum representing headers used in FSMessage.
  */
 public enum FSHeader {
-    FILE_NAME("File-Name"),
-    ID("ID"),
-    MESSAGE("Message");
+    /*============================ Enum Values ============================*/
+    FILE_NAME(1),
+    ID(2),
+    MESSAGE(3);
 
-    /*========================== Fields ==========================*/
+    /*============================ Fields ============================*/
 
-    private final String key;
+    private final int code;
 
-    /*======================= Constructors =======================*/
+    /*============================ Constructors ============================*/
 
-    FSHeader(String key) {
-        this.key = key;
-    }
+    FSHeader(int code) { this.code = code; }
 
-    /*======================== Getters ===========================*/
+    /*============================ Getters ============================*/
 
-    public String key() {
-        return key;
+    public int getCode() { return code; }
+
+    /**
+     * Get FSHeader enum from code.
+     * @param code the code to look for
+     * @return the corresponding FSHeader enum
+     * @throws IllegalArgumentException if the code is invalid
+     */
+    public static FSHeader fromCode(int code) {
+        for (FSHeader header : FSHeader.values()) {
+            if (header.code == code) {
+                return header;
+            }
+        }
+        throw new IllegalArgumentException("Invalid FSHeader code: " + code);
     }
 }

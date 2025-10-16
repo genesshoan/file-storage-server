@@ -48,10 +48,10 @@ public class FileService implements IFileService {
         OpCode opCode = OpCode.fromCode(message.getOpCodeOrResult());
         logger.info("Processing request with OpCode: " + opCode);
 
-        Map<String, String> headers = message.getHeaders();
+        Map<FSHeader, String> headers = message.getHeaders();
 
-        String name = headers.get(FSHeader.FILE_NAME.key());
-        String idStr = headers.get(FSHeader.ID.key());
+        String name = headers.get(FSHeader.FILE_NAME);
+        String idStr = headers.get(FSHeader.ID);
         Integer id = null;
 
         try (IFileRepository fileRepo = new DBFileRepository()) {

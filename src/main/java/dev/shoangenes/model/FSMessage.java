@@ -25,7 +25,7 @@ public class FSMessage {
     private int magicNumber;
     private byte type; // 0 = request, 1 = response
     private int opCodeOrResult; // OpCode for request, ResultCode for response
-    private Map<String, String> headers; // Metadata as key-value pairs
+    private Map<FSHeader, String> headers; // Metadata as key-value pairs
     private long bodyLength;
     private byte[] body;
 
@@ -57,7 +57,7 @@ public class FSMessage {
      */
     public static FSMessage createPutRequest(String fileName, byte[] body) {
         FSMessage put = new FSMessage((byte)0, OpCode.PUT.getCode());
-        put.addHeader("File-Name", fileName);
+        put.addHeader(FSHeader.FILE_NAME, fileName);
         put.setBody(body);
         return put;
     }
@@ -70,7 +70,7 @@ public class FSMessage {
      */
     public static FSMessage createGetRequest(String fileName) {
         FSMessage get = new FSMessage((byte)0, OpCode.GET.getCode());
-        get.addHeader("File-Name", fileName);
+        get.addHeader(FSHeader.FILE_NAME, fileName);
         return get;
     }
 
@@ -82,7 +82,7 @@ public class FSMessage {
      */
     public static FSMessage createGetRequest(int id) {
         FSMessage get = new FSMessage((byte)0, OpCode.GET.getCode());
-        get.addHeader("ID", String.valueOf(id));
+        get.addHeader(FSHeader.ID, String.valueOf(id));
         return get;
     }
 
@@ -94,7 +94,7 @@ public class FSMessage {
      */
     public static FSMessage createDeleteRequest(String fileName) {
         FSMessage delete = new FSMessage((byte)0, OpCode.DELETE.getCode());
-        delete.addHeader("File-Name", fileName);
+        delete.addHeader(FSHeader.FILE_NAME, fileName);
         return delete;
     }
 
@@ -106,7 +106,7 @@ public class FSMessage {
      */
     public static FSMessage createDeleteRequest(int id) {
         FSMessage delete = new FSMessage((byte)0, OpCode.DELETE.getCode());
-        delete.addHeader("ID", String.valueOf(id));
+        delete.addHeader(FSHeader.ID, String.valueOf(id));
         return delete;
     }
 
@@ -121,8 +121,8 @@ public class FSMessage {
      */
     public static FSMessage createOkResponse(int id, String fileName) {
         FSMessage ok = new FSMessage((byte)1, ResultCode.SUCCESS.getCode());
-        ok.addHeader("ID", String.valueOf(id));
-        ok.addHeader("File-Name", fileName);
+        ok.addHeader(FSHeader.ID, String.valueOf(id));
+        ok.addHeader(FSHeader.FILE_NAME, fileName);
         return ok;
     }
 
@@ -149,7 +149,7 @@ public class FSMessage {
      */
     public static FSMessage createErrorResponse(ResultCode code, String message) {
         FSMessage error = new FSMessage((byte)1, code.getCode());
-        error.addHeader("Message", message);
+        error.addHeader(FSHeader.MESSAGE, message);
         return error;
     }
 
@@ -183,7 +183,7 @@ public class FSMessage {
      * Gets the headers of the message.
      * @return A map containing the headers as key-value pairs.
      */
-    public Map<String, String> getHeaders() {
+    public Map<FSHeader, String> getHeaders() {
         return headers;
     }
 
@@ -213,7 +213,7 @@ public class FSMessage {
      * @param key      The header key.
      * @param fileName The header value.
      */
-    private void addHeader(String key, String fileName) {
+    private void addHeader(FSHeader key, String fileName) {
         headers.put(key, fileName);
     }
 
@@ -230,11 +230,9 @@ public class FSMessage {
         out.writeByte(type);
         out.writeInt(opCodeOrResult);
         out.writeInt(headers.size());
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            byte[] keyBytes = entry.getKey().getBytes(StandardCharsets.UTF_8);
+        for (Map.Entry<FSHeader, String> entry : headers.entrySet()) {
+            out.writeInt(entry.getKey().getCode());
             byte[] valueBytes = entry.getValue().getBytes(StandardCharsets.UTF_8);
-            out.writeInt(keyBytes.length);
-            out.write(keyBytes);
             out.writeInt(valueBytes.length);
             out.write(valueBytes);
         }
@@ -265,17 +263,14 @@ public class FSMessage {
 
         int headerCount = in.readInt();
         for (int i = 0; i < headerCount; i++) {
-            int keyLength = in.readInt();
-            byte[] keyBytes = new byte[keyLength];
-            in.readFully(keyBytes);
-            String key = new String(keyBytes, StandardCharsets.UTF_8);
+            int headerCode = in.readInt();
 
             int valueLength = in.readInt();
             byte[] valueBytes = new byte[valueLength];
             in.readFully(valueBytes);
             String value = new String(valueBytes, StandardCharsets.UTF_8);
 
-            message.addHeader(key, value);
+            message.addHeader(FSHeader.fromCode(headerCode), value);
         }
 
         long bodyLength = in.readLong();
@@ -314,15 +309,15 @@ public class FSMessage {
     private void validateRequest() {
         OpCode opCode = OpCode.fromCode(opCodeOrResult);
 
-        String fileName = headers.get(FSHeader.FILE_NAME.key());
-        String idStr = headers.get(FSHeader.ID.key());
+        String fileName = headers.get(FSHeader.FILE_NAME);
+        String idStr = headers.get(FSHeader.ID);
 
         if (fileName == null && idStr == null) {
             throw new IllegalArgumentException("Either File-Name or ID header must be present");
         }
 
         if (fileName != null) {
-            FileValidator.validateFileName(headers.get(FSHeader.FILE_NAME.key()));
+            FileValidator.validateFileName(headers.get(FSHeader.FILE_NAME));
         }
 
         if (idStr != null) {
@@ -345,8 +340,8 @@ public class FSMessage {
 
         switch (resultCode) {
             case SUCCESS -> {
-                String idStr = headers.get(FSHeader.ID.key());
-                String fileName = headers.get(FSHeader.FILE_NAME.key());
+                String idStr = headers.get(FSHeader.ID);
+                String fileName = headers.get(FSHeader.FILE_NAME);
 
                 FileValidator.validateFileName(fileName);
                 FileValidator.validateFileId(idStr);
