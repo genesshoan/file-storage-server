@@ -16,23 +16,23 @@ public class StorageProperties {
 
     /*============================= Default Values ============================*/
 
-    private static final String CONFIG_FILE = "storage.properties.example";
+    private static final String CONFIG_FILE = "storage.properties";
 
     // Storage settings
-    private String repositoryType; // "file" or "database"
-    private long maxFileSize;
+    private String repositoryType = "database"; // "file" or "database"
+    private long maxFileSize = 10485760; // 10MB default
 
     // File storage settings
-    private String fileStoragePath;
+    private String fileStoragePath = "data/files";
 
     // Database storage settings
-    private String databaseUrl;
-    private String databaseDriver;
-    private boolean requireAuthentication;
-    private String password;
-    private String username;
-    private int maxConnections;
-    private int maxFileNameLength;
+    private String databaseUrl = "jdbc:sqlite:data/database.db";
+    private String databaseDriver = "org.sqlite.JDBC";
+    private boolean requireAuthentication = false;
+    private String password = null;
+    private String username = null;
+    private int maxConnections = 1;
+    private int maxFileNameLength = 255;
 
     /*============================= Constructors ==============================*/
 
@@ -42,36 +42,18 @@ public class StorageProperties {
             return;
         }
 
-        this.repositoryType = props.getProperty("storage.repositoryType", "database");
-        this.fileStoragePath = props.getProperty("storage.fileStoragePath", "data/files");
-        this.databaseUrl = props.getProperty("storage.databaseUrl", "jdbc:sqlite:data/database.db");
-        this.databaseDriver = props.getProperty("storage.databaseDriver", "org.sqlite.JDBC");
+        this.repositoryType = props.getProperty("storage.repositoryType");
+        this.fileStoragePath = props.getProperty("storage.fileStoragePath");
+        this.databaseUrl = props.getProperty("storage.databaseUrl");
+        this.databaseDriver = props.getProperty("storage.databaseDriver");
+        this.maxFileSize = Long.parseLong(props.getProperty("storage.maxFileSize"));
+        this.requireAuthentication = Boolean.parseBoolean(props.getProperty("storage.requireAuthentication"));
+        this.requireAuthentication = Boolean.parseBoolean(props.getProperty("storage.requireAuthentication"));
+        this.username = props.getProperty("storage.username");
+        this.password = props.getProperty("storage.password");
+        this.maxConnections = Integer.parseInt(props.getProperty("storage.maxConnections"));
+        this.maxFileNameLength = Integer.parseInt(props.getProperty("storage.maxFileNameLength", "255"));
 
-        try {
-            this.maxFileSize = Long.parseLong(props.getProperty("storage.maxFileSize", "10485760"));
-        } catch (NumberFormatException e) {
-            this.maxFileSize = 10485760; // Default to 10MB
-        }
-
-        try {
-            this.requireAuthentication = Boolean.parseBoolean(props.getProperty("storage.requireAuthentication", "false"));
-        } catch (Exception e) {
-            this.requireAuthentication = false;
-        }
-
-        this.requireAuthentication = Boolean.parseBoolean(props.getProperty("storage.requireAuthentication", "false"));
-        this.username = props.getProperty("storage.username", null);
-        this.password = props.getProperty("storage.password", null);
-        try {
-            Integer.parseInt(props.getProperty("storage.maxConnections", "1"));
-        } catch (NumberFormatException e) {
-            this.maxConnections = 1;
-        }
-        try {
-            this.maxFileNameLength = Integer.parseInt(props.getProperty("storage.maxFileNameLength", "255"));
-        } catch (NumberFormatException e) {
-            this.maxFileNameLength = 255;
-        }
     }
 
     /*============================= Public Methods =============================*/
