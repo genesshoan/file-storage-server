@@ -43,3 +43,7 @@ bin/
 
 ### Configuration Files ###
 src/main/resources/storage.properties
+
+### Logs ###
+logs/
+*.log
