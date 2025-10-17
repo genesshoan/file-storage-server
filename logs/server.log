@@ -1,0 +1,96 @@
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: DELETE
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling DELETE operation for file: testFile.txt, ID: 1
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handleDelete
+SEVERE: Failed to delete file: testFile.txt - null
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: DELETE
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling DELETE operation for file: testFile.txt, ID: 1
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handleDelete
+SEVERE: Database error during file deletion: testFile.txt - null
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: DELETE
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling DELETE operation for file: testFile.txt, ID: 1
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handleDelete
+SEVERE: Failed to delete file: testFile.txt - null
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: DELETE
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling DELETE operation for file: testFile.txt, ID: 1
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handleDelete
+WARNING: File not found for deletion: testFile.txt (ID: 1)
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: DELETE
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling DELETE operation for file: testFile.txt, ID: 1
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handleDelete
+SEVERE: Database error during file deletion: testFile.txt - null
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: DELETE
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling DELETE operation for file: testFile.txt, ID: 1
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handleDelete
+INFO: File deleted successfully: testFile.txt (ID: 1)
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: GET
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling GET operation for file: testFile.txt, ID: 1
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handleGet
+WARNING: File not found for retrieval: testFile.txt (ID: 1)
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: GET
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling GET operation for file: testFile.txt, ID: 1
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handleGet
+SEVERE: Failed to retrieve file: testFile.txt - null
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: GET
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling GET operation for file: testFile.txt, ID: 1
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handleGet
+SEVERE: Failed to get file: testFile.txt - null
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: GET
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling GET operation for file: testFile.txt, ID: 1
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handleGet
+WARNING: File content not found: testFile.txt (ID: 1)
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: GET
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling GET operation for file: testFile.txt, ID: 1
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handleGet
+INFO: File retrieved successfully: testFile.txt (ID: 1)
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: PUT
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling PUT operation for file: testFile.txt
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handlePut
+SEVERE: Failed to save file: testFile.txt - null
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: PUT
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling PUT operation for file: testFile.txt
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handlePut
+SEVERE: Database error during file storage: testFile.txt - null
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: PUT
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling PUT operation for file: testFile.txt
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handlePut
+SEVERE: Unexpected error during file storage: testFile.txt - Unexpected error
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: PUT
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling PUT operation for file: testFile.txt
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handlePut
+WARNING: Attempt to overwrite existing file: testFile.txt
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Processing request with OpCode: PUT
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService processRequest
+INFO: Handling PUT operation for file: testFile.txt
+Oct 17, 2025 1:39:55 AM dev.shoangenes.server.FileService handlePut
+INFO: File stored successfully: testFile.txt (ID: 1)
