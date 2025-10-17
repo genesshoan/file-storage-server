@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 /**
  * Singleton class to manage database connections using HikariCP connection pooling.
  */
-class DatabaseManager implements AutoCloseable {
+public class DatabaseManager implements AutoCloseable {
     /*============================= Singleton Instance ========================*/
 
     private static final DatabaseManager instance = new DatabaseManager();
@@ -32,6 +32,23 @@ class DatabaseManager implements AutoCloseable {
      */
     private DatabaseManager() {
         StorageProperties props = StorageProperties.getInstance();
+
+        // Ensure SQLite database directory exists
+        if (props.getDatabaseDriver() != null && props.getDatabaseDriver().toLowerCase().contains("sqlite")) {
+            String url = props.getDatabaseUrl();
+            if (url != null && url.startsWith("jdbc:sqlite:")) {
+                String dbPath = url.substring("jdbc:sqlite:".length());
+                java.io.File dbFile = new java.io.File(dbPath);
+                java.io.File parentDir = dbFile.getParentFile();
+                if (parentDir != null && !parentDir.exists()) {
+                    if (parentDir.mkdirs()) {
+                        logger.info("Created database directory: " + parentDir.getAbsolutePath());
+                    } else {
+                        logger.warning("Failed to create database directory: " + parentDir.getAbsolutePath());
+                    }
+                }
+            }
+        }
 
         hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(props.getDatabaseUrl());

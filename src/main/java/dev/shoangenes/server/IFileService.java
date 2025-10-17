@@ -6,7 +6,7 @@ import java.io.DataOutputStream;
 /**
  * Interface for file service operations.
  */
-public interface IFileService {
+interface IFileService extends AutoCloseable {
     /**
      * Processes a file system message and returns a response.
      * @param message the incoming FSMessage

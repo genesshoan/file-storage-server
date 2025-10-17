@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 /**
  * Implementación vacía de IFileService.
  */
-public class FileService implements IFileService, AutoCloseable {
+class FileService implements IFileService, AutoCloseable {
     /*========================== Fields ===========================*/
 
     private IFileRepository fileRepository;

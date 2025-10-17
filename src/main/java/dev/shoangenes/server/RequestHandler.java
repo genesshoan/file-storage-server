@@ -13,10 +13,10 @@ import java.util.logging.Logger;
  * Reads FSMessage objects from the input stream, processes them using the provided FileService,
  * and sends responses back to the client until the connection is closed.
  */
-public class RequestHandler implements Runnable {
+class RequestHandler implements Runnable {
     /*============================= Fields =============================*/
     private final Socket socket;
-    private final FileService fileService;
+    private final IFileService fileService;
 
     /*============================= Logger =============================*/
 
@@ -29,7 +29,7 @@ public class RequestHandler implements Runnable {
      * @param socket the client socket
      * @param fileService the file service to handle requests
      */
-    public RequestHandler(Socket socket, FileService fileService) {
+    public RequestHandler(Socket socket, IFileService fileService) {
         this.socket = socket;
         this.fileService = fileService;
     }
